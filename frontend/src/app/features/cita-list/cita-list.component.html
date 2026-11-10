@@ -1,0 +1,330 @@
+<div class="container animate-fade-in">
+  <!-- Cabecera de la sección -->
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">
+        <a routerLink="/dashboard"><i class="fa-solid fa-house"></i> Dashboard</a>
+        <i class="fa-solid fa-chevron-right separator"></i>
+        <span>Citas Registradas</span>
+      </div>
+      <h1 class="page-title">Gestión de Citas Médicas</h1>
+      <p class="page-subtitle">
+        Consulta, filtra, actualiza y gestiona las citas almacenadas en MongoDB en tiempo real.
+      </p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="exportarCSV()" [disabled]="isLoading || citasFiltradas.length === 0" title="Descargar reporte en formato CSV (Excel)">
+        <i class="fa-solid fa-file-csv"></i>
+        <span>Exportar CSV</span>
+      </button>
+      <button class="btn btn-secondary" (click)="cargarCitas()" [disabled]="isLoading" title="Recargar desde base de datos">
+        <i class="fa-solid fa-arrows-rotate" [ngClass]="{ 'fa-spin': isLoading }"></i>
+        <span>Actualizar</span>
+      </button>
+      <a
+        *ngIf="authService.hasRole('admin', 'recepcionista')"
+        routerLink="/citas/nueva"
+        class="btn btn-primary"
+      >
+        <i class="fa-solid fa-plus"></i>
+        <span>Nueva Cita</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Banner de Permisos por Rol (RBAC - Módulo T07) -->
+  <div class="rbac-role-banner" [ngClass]="'rbac-' + (authService.usuarioActual?.rol || 'medico')">
+    <div class="rbac-banner-left">
+      <i class="fa-solid fa-user-shield"></i>
+      <div>
+        <strong>Rol activo: {{ authService.usuarioActual?.rol | uppercase }}</strong>
+        <span *ngIf="authService.usuarioActual?.rol === 'admin'">
+          — Control Total: Puedes crear, editar todos los campos, cambiar estados y eliminar citas en MongoDB.
+        </span>
+        <span *ngIf="authService.usuarioActual?.rol === 'recepcionista'">
+          — Gestión de Agenda: Puedes registrar nuevas citas y editar datos de pacientes. La eliminación está bloqueada (<i class="fa-solid fa-lock"></i> Solo Admin).
+        </span>
+        <span *ngIf="authService.usuarioActual?.rol === 'medico'">
+          — Atención Clínica: Puedes actualizar el <strong>Estado</strong> de las citas en tiempo real. Crear, editar datos administrativos y eliminar están bloqueados (<i class="fa-solid fa-lock"></i>).
+        </span>
+      </div>
+    </div>
+    <button
+      *ngIf="authService.usuarioActual?.rol === 'medico'"
+      type="button"
+      class="btn-my-appointments"
+      [ngClass]="{ active: soloMisCitas }"
+      (click)="alternarMisCitas()"
+    >
+      <i class="fa-solid fa-stethoscope"></i>
+      <span>{{ soloMisCitas ? 'Viendo Solo Mis Citas (Ver Todas)' : 'Filtrar Mis Citas (' + authService.usuarioActual?.nombre + ')' }}</span>
+    </button>
+  </div>
+
+  <!-- Barra de Filtros y Búsqueda -->
+  <div class="card filter-card">
+    <div class="filter-top">
+      <!-- Buscador -->
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input
+          type="text"
+          class="form-control search-input"
+          placeholder="Buscar por paciente, médico, especialidad o motivo..."
+          [(ngModel)]="terminoBusqueda"
+          (input)="aplicarFiltros()"
+        />
+        <button class="btn-clear" *ngIf="terminoBusqueda" (click)="terminoBusqueda = ''; aplicarFiltros()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Selector de Especialidad -->
+      <div class="specialty-filter">
+        <select
+          class="form-control"
+          [(ngModel)]="especialidadFiltro"
+          (change)="aplicarFiltros()"
+        >
+          <option value="Todas">Todas las especialidades</option>
+          <option *ngFor="let esp of especialidades" [value]="esp">{{ esp }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Píldoras de Filtro por Estado -->
+    <div class="status-pills">
+      <span class="pills-label">Filtrar por estado:</span>
+      <button
+        class="pill-btn"
+        [ngClass]="{ active: estadoFiltro === 'Todos' }"
+        (click)="cambiarEstadoFiltro('Todos')"
+      >
+        Todos ({{ citas.length }})
+      </button>
+      <button
+        class="pill-btn pill-pendiente"
+        [ngClass]="{ active: estadoFiltro === 'Pendiente' }"
+        (click)="cambiarEstadoFiltro('Pendiente')"
+      >
+        Pendientes
+      </button>
+      <button
+        class="pill-btn pill-confirmada"
+        [ngClass]="{ active: estadoFiltro === 'Confirmada' }"
+        (click)="cambiarEstadoFiltro('Confirmada')"
+      >
+        Confirmadas
+      </button>
+      <button
+        class="pill-btn pill-atencion"
+        [ngClass]="{ active: estadoFiltro === 'En Atención' }"
+        (click)="cambiarEstadoFiltro('En Atención')"
+      >
+        En Atención
+      </button>
+      <button
+        class="pill-btn pill-completada"
+        [ngClass]="{ active: estadoFiltro === 'Completada' }"
+        (click)="cambiarEstadoFiltro('Completada')"
+      >
+        Completadas
+      </button>
+      <button
+        class="pill-btn pill-cancelada"
+        [ngClass]="{ active: estadoFiltro === 'Cancelada' }"
+        (click)="cambiarEstadoFiltro('Cancelada')"
+      >
+        Canceladas
+      </button>
+    </div>
+  </div>
+
+  <!-- Indicador de Resultados -->
+  <div class="results-bar">
+    <span>Mostrando <strong>{{ citasFiltradas.length }}</strong> de <strong>{{ citas.length }}</strong> citas registradas</span>
+    <button *ngIf="terminoBusqueda || estadoFiltro !== 'Todos' || especialidadFiltro !== 'Todas'" class="btn-link" (click)="limpiarFiltros()">
+      <i class="fa-solid fa-filter-circle-xmark"></i> Limpiar filtros
+    </button>
+  </div>
+
+  <!-- Tabla Principal de Citas -->
+  <div class="card table-card">
+    <!-- Estado de Carga -->
+    <div class="loading-state" *ngIf="isLoading">
+      <i class="fa-solid fa-circle-notch fa-spin"></i>
+      <p>Sincronizando con MongoDB...</p>
+    </div>
+
+    <!-- Estado Vacío -->
+    <div class="empty-state" *ngIf="!isLoading && citasFiltradas.length === 0">
+      <div class="empty-icon">
+        <i class="fa-solid fa-clipboard-question"></i>
+      </div>
+      <h3>No se encontraron citas médicas</h3>
+      <p *ngIf="citas.length === 0">No hay registros almacenados actualmente en la base de datos.</p>
+      <p *ngIf="citas.length > 0">Ninguna cita coincide con los criterios de búsqueda o filtros seleccionados.</p>
+      <div class="empty-actions">
+        <a routerLink="/citas/nueva" class="btn btn-primary" *ngIf="citas.length === 0">
+          <i class="fa-solid fa-plus"></i> Registrar Primera Cita
+        </a>
+        <button class="btn btn-secondary" (click)="limpiarFiltros()" *ngIf="citas.length > 0">
+          Restablecer Filtros
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabla de Registros -->
+    <div class="table-responsive" *ngIf="!isLoading && citasFiltradas.length > 0">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Paciente / Cliente</th>
+            <th>Especialidad y Médico</th>
+            <th>Programación</th>
+            <th>Prioridad</th>
+            <th>Costo</th>
+            <th>Estado</th>
+            <th class="text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cita of citasFiltradas" class="table-row">
+            <!-- Paciente -->
+            <td>
+              <div class="patient-cell">
+                <div class="patient-avatar">
+                  {{ cita.cliente.charAt(0).toUpperCase() }}
+                </div>
+                <div>
+                  <strong class="patient-name">{{ cita.cliente }}</strong>
+                  <div class="patient-contact">
+                    <span><i class="fa-regular fa-envelope"></i> {{ cita.email }}</span>
+                    <span><i class="fa-solid fa-phone"></i> {{ cita.telefono }}</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Especialidad y Médico -->
+            <td>
+              <div class="doctor-cell">
+                <span class="specialty-badge">{{ cita.especialidad }}</span>
+                <span class="doctor-name"><i class="fa-solid fa-user-doctor"></i> {{ cita.profesional }}</span>
+                <small class="motive-snippet" [title]="cita.motivo">
+                  <i class="fa-regular fa-comment-dots"></i> {{ cita.motivo }}
+                </small>
+              </div>
+            </td>
+
+            <!-- Fecha y Hora -->
+            <td>
+              <div class="datetime-cell">
+                <span class="date-tag"><i class="fa-regular fa-calendar-days"></i> {{ cita.fecha }}</span>
+                <span class="time-tag"><i class="fa-regular fa-clock"></i> {{ cita.hora }}</span>
+              </div>
+            </td>
+
+            <!-- Prioridad -->
+            <td>
+              <span
+                class="badge"
+                [ngClass]="{
+                  'badge-prioridad-urgente': cita.prioridad === 'Urgente',
+                  'badge-prioridad-alta': cita.prioridad === 'Alta',
+                  'badge-prioridad-media': cita.prioridad === 'Media',
+                  'badge-prioridad-baja': cita.prioridad === 'Baja'
+                }"
+              >
+                {{ cita.prioridad }}
+              </span>
+            </td>
+
+            <!-- Costo -->
+            <td>
+              <span class="cost-tag">S/ {{ cita.costo | number:'1.2-2' }}</span>
+            </td>
+
+            <!-- Estado con selector rápido -->
+            <td>
+              <div class="status-select-wrapper">
+                <select
+                  class="status-dropdown"
+                  [ngClass]="{
+                    'select-pendiente': cita.estado === 'Pendiente',
+                    'select-confirmada': cita.estado === 'Confirmada',
+                    'select-atencion': cita.estado === 'En Atención',
+                    'select-completada': cita.estado === 'Completada',
+                    'select-cancelada': cita.estado === 'Cancelada'
+                  }"
+                  [ngModel]="cita.estado"
+                  (ngModelChange)="actualizarEstadoRapido(cita, $event)"
+                >
+                  <option *ngFor="let est of estadosDisponibles" [value]="est">{{ est }}</option>
+                </select>
+              </div>
+            </td>
+
+            <!-- Botones de Acción según Rol (RBAC T07) -->
+            <td class="text-right">
+              <div class="actions-cell">
+                <!-- Editar: Habilitado solo para Admin y Recepcionista -->
+                <a
+                  *ngIf="authService.hasRole('admin', 'recepcionista')"
+                  [routerLink]="['/citas/editar', cita._id]"
+                  class="btn-action btn-edit"
+                  title="Editar cita médica"
+                >
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </a>
+                <button
+                  *ngIf="!authService.hasRole('admin', 'recepcionista')"
+                  type="button"
+                  class="btn-action btn-locked"
+                  (click)="notificarEdicionRestringida()"
+                  title="Bloqueado para rol MÉDICO (solo puede cambiar el Estado)"
+                >
+                  <i class="fa-solid fa-lock"></i>
+                </button>
+
+                <!-- Eliminar: Habilitado solo para Admin -->
+                <button
+                  *ngIf="authService.isAdmin()"
+                  type="button"
+                  class="btn-action btn-delete"
+                  (click)="abrirModalEliminar(cita)"
+                  title="Eliminar cita médica (requiere confirmación)"
+                >
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+                <button
+                  *ngIf="!authService.isAdmin()"
+                  type="button"
+                  class="btn-action btn-locked"
+                  (click)="abrirModalEliminar(cita)"
+                  title="Bloqueado: Solo el rol ADMIN puede eliminar citas"
+                >
+                  <i class="fa-solid fa-lock"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Componente Modal de Confirmación para Eliminar (Obligatorio en Rúbrica) -->
+  <app-confirm-modal
+    [isOpen]="modalEliminarAbierto"
+    title="¿Eliminar cita médica?"
+    message="Esta operación eliminará permanentemente el registro de la base de datos MongoDB. Esta acción no se puede deshacer."
+    [details]="citaAEliminar ? citaAEliminar.cliente + ' (' + citaAEliminar.especialidad + ' - ' + citaAEliminar.fecha + ' ' + citaAEliminar.hora + ')' : ''"
+    confirmText="Sí, eliminar definitivamente"
+    cancelText="Cancelar"
+    [isDanger]="true"
+    [isLoading]="isEliminando"
+    (onConfirm)="confirmarEliminacion()"
+    (onCancel)="cerrarModalEliminar()"
+  ></app-confirm-modal>
+</div>

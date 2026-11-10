@@ -1,0 +1,95 @@
+<header class="navbar-wrapper">
+  <div class="navbar-container">
+    <!-- Brand / Logotipo -->
+    <a routerLink="/dashboard" class="navbar-brand">
+      <div class="brand-icon">
+        <i class="fa-solid fa-heart-pulse"></i>
+      </div>
+      <div class="brand-text">
+        <span class="brand-title">Medisys</span>
+        <span class="brand-subtitle">Angular Principal • PA3</span>
+      </div>
+    </a>
+
+    <!-- Botón Móvil Hamburguesa -->
+    <button class="mobile-toggle" (click)="toggleMobileMenu()" aria-label="Abrir menú de navegación">
+      <i class="fa-solid" [ngClass]="isMobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
+    </button>
+
+    <!-- Enlaces de Navegación (cuando hay sesión activa) -->
+    <nav class="nav-links" [ngClass]="{ 'is-open': isMobileMenuOpen }" *ngIf="usuarioActual">
+      <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="isMobileMenuOpen = false" class="nav-item">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Dashboard</span>
+      </a>
+      <a routerLink="/citas" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="isMobileMenuOpen = false" class="nav-item">
+        <i class="fa-solid fa-calendar-check"></i>
+        <span>Citas Registradas</span>
+      </a>
+      <a
+        *ngIf="authService.hasRole('admin', 'recepcionista')"
+        routerLink="/citas/nueva"
+        routerLinkActive="active"
+        (click)="isMobileMenuOpen = false"
+        class="nav-item nav-item-cta"
+      >
+        <i class="fa-solid fa-circle-plus"></i>
+        <span>Nueva Cita</span>
+      </a>
+      <a href="http://localhost:5173" target="_blank" rel="noopener" class="nav-item nav-item-react" title="Abrir el Panel Secundario en React.js">
+        <i class="fa-brands fa-react"></i>
+        <span>Panel React</span>
+      </a>
+    </nav>
+
+    <!-- Enlaces cuando NO hay sesión activa -->
+    <nav class="nav-links" [ngClass]="{ 'is-open': isMobileMenuOpen }" *ngIf="!usuarioActual">
+      <a routerLink="/login" routerLinkActive="active" class="nav-item">
+        <i class="fa-solid fa-right-to-bracket"></i>
+        <span>Iniciar Sesión</span>
+      </a>
+      <a routerLink="/registro" routerLinkActive="active" class="nav-item nav-item-cta">
+        <i class="fa-solid fa-user-plus"></i>
+        <span>Registrarse</span>
+      </a>
+      <a href="http://localhost:5173" target="_blank" rel="noopener" class="nav-item nav-item-react">
+        <i class="fa-brands fa-react"></i>
+        <span>Panel React (:5173)</span>
+      </a>
+    </nav>
+
+    <!-- Derecha: Estado del Servidor + Perfil de Usuario y Cierre de Sesión -->
+    <div class="navbar-right">
+      <div class="server-badge" [ngClass]="serverStatus" (click)="verificarServidor()" title="Clic para reintentar ping al servidor">
+        <span class="status-dot"></span>
+        <span class="status-label">
+          <ng-container *ngIf="serverStatus === 'online'">API Online</ng-container>
+          <ng-container *ngIf="serverStatus === 'offline'">API Offline</ng-container>
+          <ng-container *ngIf="serverStatus === 'checking'">Conectando...</ng-container>
+        </span>
+      </div>
+
+      <div class="user-session-box" *ngIf="usuarioActual">
+        <div class="user-info-pill">
+          <span class="role-chip" [ngClass]="'role-' + usuarioActual.rol">
+            {{ usuarioActual.rol | uppercase }}
+          </span>
+          <span class="user-name">{{ usuarioActual.nombre }}</span>
+        </div>
+        <button
+          type="button"
+          class="btn-sim-exp"
+          (click)="simularTokenExpirado()"
+          title="Demostrar Interceptor HTTP 401: Simula que el token JWT expiró"
+        >
+          <i class="fa-solid fa-hourglass-end"></i>
+          <span>Test 401</span>
+        </button>
+        <button type="button" class="btn-logout" (click)="cerrarSesion()" title="Cerrar sesión JWT">
+          <i class="fa-solid fa-power-off"></i>
+          <span>Salir</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>

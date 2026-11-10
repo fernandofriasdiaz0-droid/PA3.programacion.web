@@ -1,0 +1,27 @@
+# Dependencias
+node_modules/
+*/node_modules/
+
+# Compilaciones
+dist/
+*/dist/
+.angular/
+*/.angular/
+
+# Entornos y secretos
+.env
+.env.local
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

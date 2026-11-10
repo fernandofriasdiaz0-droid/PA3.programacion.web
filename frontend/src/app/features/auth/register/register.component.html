@@ -1,0 +1,100 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">
+        <i class="fa-solid fa-user-plus"></i>
+      </div>
+      <h1>Registro de Usuario Clínico</h1>
+      <p>Crea una cuenta persistente en MongoDB con contraseña protegida por Bcrypt (T07)</p>
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate class="auth-form">
+      <div class="form-group">
+        <label for="nombre">Nombre Completo</label>
+        <div class="input-icon-wrapper" [class.invalid]="esInvalido('nombre')">
+          <i class="fa-solid fa-user"></i>
+          <input
+            id="nombre"
+            type="text"
+            formControlName="nombre"
+            placeholder="Ej. Dr. Carlos Mendoza"
+          />
+        </div>
+        <small class="error-msg" *ngIf="esInvalido('nombre')">
+          El nombre completo es obligatorio (mínimo 3 caracteres).
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Correo Electrónico</label>
+        <div class="input-icon-wrapper" [class.invalid]="esInvalido('email')">
+          <i class="fa-solid fa-envelope"></i>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="usuario@medisys.com"
+          />
+        </div>
+        <small class="error-msg" *ngIf="esInvalido('email')">
+          Ingresa un correo electrónico válido.
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Contraseña Segura (Hash Bcrypt)</label>
+        <div class="input-icon-wrapper" [class.invalid]="esInvalido('password')">
+          <i class="fa-solid fa-lock"></i>
+          <input
+            id="password"
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="Mínimo 6 caracteres"
+          />
+          <button
+            type="button"
+            class="toggle-pwd"
+            (click)="showPassword = !showPassword"
+          >
+            <i class="fa-solid" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+          </button>
+        </div>
+        <small class="error-msg" *ngIf="esInvalido('password')">
+          La contraseña debe tener al menos 6 caracteres.
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="rol">Rol y Nivel de Autorización (RBAC)</label>
+        <div class="input-icon-wrapper">
+          <i class="fa-solid fa-id-badge"></i>
+          <select id="rol" formControlName="rol">
+            <option value="recepcionista">Recepcionista (Lectura, Creación y Edición)</option>
+            <option value="medico">Médico Especialista (Gestión de Atención Clínica)</option>
+            <option value="admin">Administrador (Control Total + Eliminación + Seed)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="especialidad">Área o Especialidad</label>
+        <div class="input-icon-wrapper">
+          <i class="fa-solid fa-stethoscope"></i>
+          <select id="especialidad" formControlName="especialidad">
+            <option *ngFor="let esp of especialidades" [value]="esp">{{ esp }}</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" [disabled]="isSubmitting">
+        <i class="fa-solid" [ngClass]="isSubmitting ? 'fa-spinner fa-spin' : 'fa-user-check'"></i>
+        <span>{{ isSubmitting ? 'Registrando en MongoDB...' : 'Registrar e Iniciar Sesión' }}</span>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>¿Ya tienes una cuenta registrada? <a routerLink="/login">Iniciar sesión aquí</a></p>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,27 @@
+[
+  {
+    "nombre": "Dr. Fernando Administración",
+    "email": "admin@medisys.com",
+    "rol": "admin",
+    "especialidad": "Dirección Médica",
+    "activo": true,
+    "nota": "Credencial demo PA3: Admin123! (almacenada como hash bcrypt en MongoDB)"
+  },
+  {
+    "nombre": "Dra. Ana Patricia Ruiz",
+    "email": "medico@medisys.com",
+    "rol": "medico",
+    "especialidad": "Cardiología",
+    "activo": true,
+    "nota": "Credencial demo PA3: Medico123! (almacenada como hash bcrypt en MongoDB)"
+  },
+  {
+    "nombre": "Lucía Admisión Clínica",
+    "email": "recepcion@medisys.com",
+    "rol": "recepcionista",
+    "especialidad": "Recepción y Admisión",
+    "activo": true,
+    "nota": "Credencial demo PA3: Recepcion123! (almacenada como hash bcrypt en MongoDB)"
+  }
+]
+

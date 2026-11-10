@@ -1,0 +1,302 @@
+<div class="container animate-fade-in">
+  <!-- Hero Banner -->
+  <section class="hero-banner">
+    <div class="hero-content">
+      <div class="hero-tag">
+        <i class="fa-solid fa-shield-halved"></i>
+        <span>Interfaz Principal Angular • PA3 Full Stack (JWT + Roles + Dual SPA)</span>
+      </div>
+      <h1 class="hero-title">Sistema de Gestión de Citas Médicas</h1>
+      <p class="hero-description">
+        Sesión activa como <strong>{{ authService.usuarioActual?.nombre }}</strong>
+        (Rol: <strong>{{ authService.usuarioActual?.rol | uppercase }}</strong>).
+        Sincronizado en tiempo real con MongoDB, Express REST API y el Panel Secundario en React.js.
+      </p>
+    </div>
+    <div class="hero-actions">
+      <a
+        *ngIf="authService.hasRole('admin', 'recepcionista')"
+        routerLink="/citas/nueva"
+        class="btn btn-primary"
+      >
+        <i class="fa-solid fa-calendar-plus"></i>
+        <span>Nueva Cita Médica</span>
+      </a>
+      <button
+        *ngIf="authService.isAdmin()"
+        class="btn btn-secondary"
+        (click)="restaurarDatosPrueba()"
+        [disabled]="isRestoringSeed"
+        title="Acción exclusiva para el rol ADMIN"
+      >
+        <i class="fa-solid fa-database" [ngClass]="{ 'fa-spin': isRestoringSeed }"></i>
+        <span>{{ isRestoringSeed ? 'Restaurando...' : 'Restaurar Seed (Solo Admin)' }}</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Tarjetas de Estadísticas Principales -->
+  <section class="stats-grid">
+    <!-- Total Citas -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <span class="stat-title">Total de Citas</span>
+        <div class="stat-icon icon-blue">
+          <i class="fa-solid fa-calendar-days"></i>
+        </div>
+      </div>
+      <div class="stat-value">{{ estadisticas.total }}</div>
+      <div class="stat-footer">
+        <span class="stat-trend trend-positive">
+          <i class="fa-solid fa-arrow-trend-up"></i>
+          <span>Persistente en MongoDB</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Citas Pendientes -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <span class="stat-title">Pendientes</span>
+        <div class="stat-icon icon-amber">
+          <i class="fa-solid fa-clock"></i>
+        </div>
+      </div>
+      <div class="stat-value">{{ estadisticas.pendientes }}</div>
+      <div class="stat-footer">
+        <span class="stat-info">Por confirmar o evaluar</span>
+      </div>
+    </div>
+
+    <!-- Citas Confirmadas -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <span class="stat-title">Confirmadas</span>
+        <div class="stat-icon icon-indigo">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+      </div>
+      <div class="stat-value">{{ estadisticas.confirmadas }}</div>
+      <div class="stat-footer">
+        <span class="stat-info">Listas para atención</span>
+      </div>
+    </div>
+
+    <!-- Citas Completadas -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <span class="stat-title">Completadas</span>
+        <div class="stat-icon icon-emerald">
+          <i class="fa-solid fa-user-doctor"></i>
+        </div>
+      </div>
+      <div class="stat-value">{{ estadisticas.completadas }}</div>
+      <div class="stat-footer">
+        <span class="stat-info">Atenciones finalizadas</span>
+      </div>
+    </div>
+
+    <!-- Citas Canceladas -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <span class="stat-title">Canceladas</span>
+        <div class="stat-icon icon-rose">
+          <i class="fa-solid fa-ban"></i>
+        </div>
+      </div>
+      <div class="stat-value">{{ estadisticas.canceladas }}</div>
+      <div class="stat-footer">
+        <span class="stat-info">Citas anuladas</span>
+      </div>
+    </div>
+
+    <!-- Ingresos Estimados -->
+    <div class="stat-card stat-card-highlight">
+      <div class="stat-header">
+        <span class="stat-title">Facturación Estimada</span>
+        <div class="stat-icon icon-teal">
+          <i class="fa-solid fa-money-bill-wave"></i>
+        </div>
+      </div>
+      <div class="stat-value">S/ {{ estadisticas.ingresosEstimados | number:'1.2-2' }}</div>
+      <div class="stat-footer">
+        <span class="stat-info">Calculado en base a tarifas</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Grilla de Contenido Secundario -->
+  <div class="dashboard-grid">
+    <!-- Columna Izquierda: Próximas Citas -->
+    <section class="card section-card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Próximas Citas Programadas</h2>
+          <p class="card-subtitle">Últimos registros sincronizados desde el servidor Express</p>
+        </div>
+        <a routerLink="/citas" class="btn btn-outline btn-sm">
+          <span>Ver todas</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+
+      <div class="card-body">
+        <!-- Spinner mientras carga -->
+        <div class="loading-state" *ngIf="isLoading">
+          <i class="fa-solid fa-circle-notch fa-spin"></i>
+          <p>Consultando base de datos MongoDB...</p>
+        </div>
+
+        <!-- Estado vacío -->
+        <div class="empty-state" *ngIf="!isLoading && proximasCitas.length === 0">
+          <div class="empty-icon">
+            <i class="fa-solid fa-calendar-xmark"></i>
+          </div>
+          <h3>No hay citas programadas</h3>
+          <p>Comienza registrando una nueva cita médica o restaura los datos de prueba.</p>
+          <div class="empty-actions">
+            <a routerLink="/citas/nueva" class="btn btn-primary btn-sm">Crear Cita</a>
+            <button (click)="restaurarDatosPrueba()" class="btn btn-secondary btn-sm">Restaurar Seed</button>
+          </div>
+        </div>
+
+        <!-- Tabla de citas recientes -->
+        <div class="table-responsive" *ngIf="!isLoading && proximasCitas.length > 0">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Paciente / Cliente</th>
+                <th>Especialidad / Médico</th>
+                <th>Fecha y Hora</th>
+                <th>Estado</th>
+                <th class="text-right">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let cita of proximasCitas">
+                <td>
+                  <div class="patient-cell">
+                    <div class="patient-avatar">
+                      {{ cita.cliente.charAt(0).toUpperCase() }}
+                    </div>
+                    <div>
+                      <strong class="patient-name">{{ cita.cliente }}</strong>
+                      <span class="patient-email">{{ cita.email }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="doctor-cell">
+                    <span class="specialty-badge">{{ cita.especialidad }}</span>
+                    <small class="doctor-name">{{ cita.profesional }}</small>
+                  </div>
+                </td>
+                <td>
+                  <div class="datetime-cell">
+                    <span><i class="fa-regular fa-calendar"></i> {{ cita.fecha }}</span>
+                    <small><i class="fa-regular fa-clock"></i> {{ cita.hora }}</small>
+                  </div>
+                </td>
+                <td>
+                  <span
+                    class="badge"
+                    [ngClass]="{
+                      'badge-pendiente': cita.estado === 'Pendiente',
+                      'badge-confirmada': cita.estado === 'Confirmada',
+                      'badge-en-atencion': cita.estado === 'En Atención',
+                      'badge-completada': cita.estado === 'Completada',
+                      'badge-cancelada': cita.estado === 'Cancelada'
+                    }"
+                  >
+                    {{ cita.estado }}
+                  </span>
+                </td>
+                <td class="text-right">
+                  <a
+                    *ngIf="authService.hasRole('admin', 'recepcionista')"
+                    [routerLink]="['/citas/editar', cita._id]"
+                    class="btn-icon"
+                    title="Editar cita"
+                  >
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </a>
+                  <a
+                    *ngIf="authService.usuarioActual?.rol === 'medico'"
+                    routerLink="/citas"
+                    class="btn-icon"
+                    title="Ver y gestionar estado de atención"
+                  >
+                    <i class="fa-solid fa-stethoscope"></i>
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Columna Derecha: Especialidades y Tecnologías PA3 -->
+    <div class="side-column">
+      <!-- Tarjeta de Distribución por Especialidades -->
+      <section class="card section-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Distribución de Especialidades</h2>
+            <p class="card-subtitle">Demanda según registros en el sistema</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="specialty-list">
+            <div class="specialty-item" *ngFor="let esp of getEspecialidadesList()">
+              <div class="specialty-info">
+                <span class="specialty-name">{{ esp.nombre }}</span>
+                <span class="specialty-count">{{ esp.cantidad }} cita(s) ({{ esp.porcentaje }}%)</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" [style.width.%]="esp.porcentaje"></div>
+              </div>
+            </div>
+            <div *ngIf="getEspecialidadesList().length === 0" class="empty-specialties">
+              No hay datos registrados aún.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tarjeta de Arquitectura Técnica (Temas T01-T11) -->
+      <section class="card section-card tech-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Arquitectura Integrada PA3</h2>
+            <p class="card-subtitle">Cumplimiento de Módulos T01–T11</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <ul class="tech-checklist">
+            <li>
+              <i class="fa-solid fa-circle-check text-green"></i>
+              <span><strong>T01–T02:</strong> TypeScript estricto, enums, genéricos e inmutabilidad</span>
+            </li>
+            <li>
+              <i class="fa-solid fa-circle-check text-green"></i>
+              <span><strong>T03–T04:</strong> Angular SPA, Reactive Forms e Interceptor HTTP JWT</span>
+            </li>
+            <li>
+              <i class="fa-solid fa-circle-check text-green"></i>
+              <span><strong>T05–T06:</strong> Node.js, Express REST API y MongoDB Mongoose</span>
+            </li>
+            <li>
+              <i class="fa-solid fa-circle-check text-green"></i>
+              <span><strong>T07–T08:</strong> Seguridad Bcrypt, JWT, RBAC por roles y CHANGELOG</span>
+            </li>
+            <li>
+              <i class="fa-solid fa-circle-check text-green"></i>
+              <span><strong>T09–T11:</strong> Panel Secundario React.js, Context API Global y Axios</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

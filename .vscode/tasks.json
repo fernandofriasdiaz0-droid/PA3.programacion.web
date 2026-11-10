@@ -1,0 +1,72 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "🚀 Levantar Proyecto Completo PA3 (Backend + Angular + React)",
+      "dependsOn": [
+        "1. Levantar Backend (Node.js + Express + MongoDB + JWT)",
+        "2. Levantar Frontend Principal (Angular :4200)",
+        "3. Levantar Panel Secundario (React.js :5173)"
+      ],
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "1. Levantar Backend (Node.js + Express + MongoDB + JWT)",
+      "type": "shell",
+      "command": "if (!(Test-Path node_modules)) { Write-Host 'Instalando dependencias de Backend...' -ForegroundColor Cyan; npm install }; npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "servers"
+      }
+    },
+    {
+      "label": "2. Levantar Frontend Principal (Angular :4200)",
+      "type": "shell",
+      "command": "if (!(Test-Path node_modules)) { Write-Host 'Instalando dependencias de Angular...' -ForegroundColor Cyan; npm install }; npm start",
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "servers"
+      }
+    },
+    {
+      "label": "3. Levantar Panel Secundario (React.js :5173)",
+      "type": "shell",
+      "command": "if (!(Test-Path node_modules)) { Write-Host 'Instalando dependencias de React...' -ForegroundColor Cyan; npm install }; npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder}/panel-react"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "servers"
+      }
+    },
+    {
+      "label": "Instalar Todas las Dependencias (Backend + Angular + React)",
+      "type": "shell",
+      "command": "npm run install:all",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    }
+  ]
+}

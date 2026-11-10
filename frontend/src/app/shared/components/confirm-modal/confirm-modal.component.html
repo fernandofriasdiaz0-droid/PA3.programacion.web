@@ -1,0 +1,38 @@
+<div class="modal-backdrop" *ngIf="isOpen" (click)="cancel()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <!-- Cabecera del modal -->
+    <div class="modal-header">
+      <div class="modal-icon" [ngClass]="{ 'is-danger': isDanger }">
+        <i class="fa-solid" [ngClass]="isDanger ? 'fa-triangle-exclamation' : 'fa-circle-question'"></i>
+      </div>
+      <div>
+        <h3 class="modal-title">{{ title }}</h3>
+        <p class="modal-message">{{ message }}</p>
+      </div>
+    </div>
+
+    <!-- Detalle adicional opcional -->
+    <div class="modal-details" *ngIf="details">
+      <span class="detail-label">Elemento a eliminar:</span>
+      <strong class="detail-value">{{ details }}</strong>
+    </div>
+
+    <!-- Acciones -->
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="isLoading">
+        {{ cancelText }}
+      </button>
+      <button
+        type="button"
+        class="btn"
+        [ngClass]="isDanger ? 'btn-danger' : 'btn-primary'"
+        (click)="confirm()"
+        [disabled]="isLoading"
+      >
+        <i class="fa-solid fa-spinner fa-spin" *ngIf="isLoading"></i>
+        <i class="fa-solid fa-trash-can" *ngIf="!isLoading && isDanger"></i>
+        <span>{{ isLoading ? 'Eliminando...' : confirmText }}</span>
+      </button>
+    </div>
+  </div>
+</div>

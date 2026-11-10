@@ -1,0 +1,58 @@
+<!-- Barra de Navegación Global -->
+<app-navbar></app-navbar>
+
+<!-- Contenido Dinámico de Rutas -->
+<main class="main-content">
+  <router-outlet></router-outlet>
+</main>
+
+<!-- Pie de Página Institucional -->
+<footer class="app-footer">
+  <div class="footer-container">
+    <div class="footer-brand">
+      <div class="footer-logo">
+        <i class="fa-solid fa-heart-pulse"></i>
+        <span>Medisys Full Stack</span>
+      </div>
+      <p class="footer-text">
+        Trabajo Integrador PA2 • Programación Web • Tecnologías: Angular 16+, TypeScript, Node.js, Express y MongoDB.
+      </p>
+    </div>
+    <div class="footer-badges">
+      <span class="tech-tag">Angular</span>
+      <span class="tech-tag">TypeScript</span>
+      <span class="tech-tag">Express.js</span>
+      <span class="tech-tag">MongoDB</span>
+      <span class="tech-tag">Mongoose</span>
+      <span class="tech-tag">Node.js</span>
+    </div>
+  </div>
+</footer>
+
+<!-- Contenedor de Notificaciones Toast Flotantes -->
+<div class="toast-container" *ngIf="(toasts$ | async) as toasts">
+  <div
+    class="toast"
+    *ngFor="let toast of toasts"
+    [ngClass]="{
+      'toast-success': toast.tipo === 'success',
+      'toast-error': toast.tipo === 'error',
+      'toast-info': toast.tipo === 'info',
+      'toast-warning': toast.tipo === 'warning'
+    }"
+  >
+    <div class="toast-icon">
+      <i class="fa-solid fa-circle-check" *ngIf="toast.tipo === 'success'"></i>
+      <i class="fa-solid fa-circle-xmark" *ngIf="toast.tipo === 'error'"></i>
+      <i class="fa-solid fa-circle-info" *ngIf="toast.tipo === 'info'"></i>
+      <i class="fa-solid fa-triangle-exclamation" *ngIf="toast.tipo === 'warning'"></i>
+    </div>
+    <div class="toast-body">
+      <strong class="toast-title">{{ toast.titulo }}</strong>
+      <p class="toast-message">{{ toast.mensaje }}</p>
+    </div>
+    <button type="button" class="toast-close" (click)="dismissToast(toast.id)" aria-label="Cerrar notificación">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+</div>

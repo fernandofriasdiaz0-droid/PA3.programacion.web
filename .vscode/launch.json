@@ -1,0 +1,33 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "🌐 Abrir Frontend en Chrome (http://localhost:4200)",
+      "url": "http://localhost:4200",
+      "webRoot": "${workspaceFolder}/frontend"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "⚙️ Backend: Servidor Express (Puerto 3000)",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "args": ["${workspaceFolder}/backend/src/server.ts"],
+      "cwd": "${workspaceFolder}/backend",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "restart": true
+    }
+  ],
+  "compounds": [
+    {
+      "name": "🚀 Full Stack: Backend + Frontend Chrome",
+      "configurations": [
+        "⚙️ Backend: Servidor Express (Puerto 3000)",
+        "🌐 Abrir Frontend en Chrome (http://localhost:4200)"
+      ]
+    }
+  ]
+}
