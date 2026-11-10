@@ -1,6 +1,8 @@
 # 📚 Banco de 22 Ejercicios Resueltos — Proyecto Integrador PA3 (Medisys)
 
 > **Evaluación:** Área Integradora — Proyecto de Desarrollo Web Full (PA3)  
+> **Autor:** Jose Fernando Frias Diaz (`fernandofriasdiaz0-droid`)  
+> **Repositorio GitHub:** [`https://github.com/fernandofriasdiaz0-droid/PA3.programacion.web`](https://github.com/fernandofriasdiaz0-droid/PA3.programacion.web)  
 > **Cobertura:** Módulos Técnicos **T01 al T11** (2 ejercicios por cada módulo = **22 ejercicios completos**)  
 > **Estructura de cada ejercicio:** Pregunta, Respuesta, Justificación Técnica y Criterio de Validación.
 

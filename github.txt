@@ -1,0 +1,11 @@
+PROYECTO EVALUACIÓN PA3: Medisys v3.0 — Sistema Full Stack de Gestión de Citas Médicas
+Estudiante: Jose Fernando Frias Diaz (@fernandofriasdiaz0-droid)
+Asignatura: Área Integradora — Proyecto de Desarrollo Web Full
+
+URL del Repositorio Público en GitHub:
+https://github.com/fernandofriasdiaz0-droid/PA3.programacion.web
+
+URL de Clonación (HTTPS):
+https://github.com/fernandofriasdiaz0-droid/PA3.programacion.web.git
+
+Rama Principal: main
